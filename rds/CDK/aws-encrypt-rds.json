@@ -53,6 +53,11 @@
                     "Name": "DBInstanceIdentifier",
                     "Selector": "$.Payload.db_instance_id",
                     "Type": "String"
+                },
+                {
+                    "Name": "DBSubnetGroupName",
+                    "Selector": "$.Payload.db_subnetgroup_name",
+                    "Type": "String"
                 }
             ],
             "inputs": {
@@ -61,7 +66,7 @@
                 "InputPayload": {
                     "DBResourceIdentifier": "{{resourceId}}"
                 },
-                "Script": "import boto3\n\nDB_RESOURCE_ID = \"DBResourceIdentifier\"\n\ndef handler(event, context):\n    rds = boto3.client('rds')\n\n    resource_id = event[DB_RESOURCE_ID]\n    result=rds.describe_db_instances(\n      Filters=[\n          {\n              'Name': 'dbi-resource-id',\n              'Values': [\n                resource_id\n              ]\n          },\n      ],\n    )\n\n    info=result[\"DBInstances\"][0]\n    instance_class=info[\"DBInstanceClass\"]\n    db_instance_id=info[\"DBInstanceIdentifier\"]\n    is_cluster=False\n    cluster_id=\"\"\n    if \"DBClusterIdentifier\" in info:\n      is_cluster=True\n      cluster_id=info[\"DBClusterIdentifier\"]\n\n    found= {\n      'db_instance_id': db_instance_id,\n      'instance_class' : instance_class,\n      'cluster_id': cluster_id,\n      'is_cluster': is_cluster\n    }\n    return(found)"
+                "Script": "import boto3\n\nDB_RESOURCE_ID = \"DBResourceIdentifier\"\n\ndef handler(event, context):\n    rds = boto3.client('rds')\n\n    resource_id = event[DB_RESOURCE_ID]\n    result=rds.describe_db_instances(\n      Filters=[\n          {\n              'Name': 'dbi-resource-id',\n              'Values': [\n                resource_id\n              ]\n          },\n      ],\n    )\n\n    info=result[\"DBInstances\"][0]\n    instance_class=info[\"DBInstanceClass\"]\n    db_instance_id=info[\"DBInstanceIdentifier\"]\n    db_subnetgroup_name=info[\"DBSubnetGroup\"].get(\"DBSubnetGroupName\")\n    is_cluster=False\n    cluster_id=\"\"\n    if \"DBClusterIdentifier\" in info:\n      is_cluster=True\n      cluster_id=info[\"DBClusterIdentifier\"]\n\n    found= {\n      'db_instance_id': db_instance_id,\n      'instance_class' : instance_class,\n      'cluster_id': cluster_id,\n      'is_cluster': is_cluster,\n    'db_subnetgroup_name': db_subnetgroup_name\n    }\n    return(found)"
             }
         },
         {
@@ -108,6 +113,9 @@
                     ],
                     "automationAssumeRole": [
                         "{{automationAssumeRole}}"
+                    ],
+                    "DBSubnetGroupName": [
+                        "{{determineInstanceOrCluster.DBSubnetGroupName}}"
                     ]
                 }
             }
@@ -130,6 +138,9 @@
                     ],
                     "automationAssumeRole": [
                         "{{automationAssumeRole}}"
+                    ],
+                    "DBSubnetGroupName": [
+                        "{{determineInstanceOrCluster.DBSubnetGroupName}}"
                     ]
                 }
             }

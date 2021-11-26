@@ -28,6 +28,10 @@
         "automationAssumeRole": {
             "type": "String",
             "description": "(Required) The ARN of the role that allows Automation to perform the actions on your behalf."
+        },
+        "DBSubnetGroupName": {
+            "type": "String",
+            "description": "(Required) The ID of the subnet group to place the new database into."
         }
     },
     "mainSteps": [
@@ -82,7 +86,8 @@
                 "DBClusterIdentifier": "{{EncryptedDBClusterIdentifier}}",
                 "SnapshotIdentifier": "{{DBClusterSnapshotIdentifier}}",
                 "Engine": "{{createRDSClusterSnapshot.engine}}",
-                "KmsKeyId": "{{kmsKeyId}}"
+                "KmsKeyId": "{{kmsKeyId}}", 
+                "DBSubnetGroupName": "{{DBSubnetGroupName}}"
             }
         },
         {
